@@ -859,13 +859,15 @@ If b is high could be waiting on IO or CPU. Check swap and free to double check 
 <col style="width: 25%;">
 <col style="width: 25%;">
 </colgroup>
-<tbody>
+<thead>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Resource</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Metric</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Linux</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Solaris</p></td>
+<th class="tableblock halign-left valign-top">Resource</th>
+<th class="tableblock halign-left valign-top">Metric</th>
+<th class="tableblock halign-left valign-top">Linux</th>
+<th class="tableblock halign-left valign-top">Solaris</th>
 </tr>
+</thead>
+<tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">CPU</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">errors</p></td>
@@ -922,7 +924,7 @@ If b is high could be waiting on IO or CPU. Check swap and free to double check 
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>system-wide</strong>
 </p><p class="tableblock">vmstat 1, "si"/"so" (swapping)
 </p><p class="tableblock"><strong>per-process</strong>
-</p><p class="tableblock">10th field (min_flt) from /proc/PID/stat for minor-fault rate, or dynamic tracing [5]
+</p><p class="tableblock">10th field (min_flt) from /proc/PID/stat for minor-fault rate
 </p><p class="tableblock"><strong>OOM killer</strong>: dmesg | grep killed</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>system-wide</strong>
 </p><p class="tableblock">vmstat 1, "sr" (bad now), "w" (was very bad)
@@ -976,7 +978,7 @@ If b is high could be waiting on IO or CPU. Check swap and free to double check 
 <td class="tableblock halign-left valign-top"><p class="tableblock">sar -n DEV 1, "rxKB/s"/max "txKB/s"/max
 </p><p class="tableblock">ip -s link, RX/TX tput / max bandwidth
 </p><p class="tableblock">/proc/net/dev, "bytes" RX/TX tput/max
-</p><p class="tableblock">nicstat "%Util" [6]</p></td>
+</p><p class="tableblock">nicstat "%Util"</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">nicstat
 </p><p class="tableblock">kstat
 </p><p class="tableblock">dladm show-link -s -i 1 interface</p></td>
@@ -1173,7 +1175,7 @@ If b is high could be waiting on IO or CPU. Check swap and free to double check 
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2017-02-13 14:49:44 CET
+Last updated 2017-02-13 15:08:31 CET
 </div>
 </div>
 </body>
