@@ -183,7 +183,7 @@ If b is high could be waiting on IO or CPU. Check swap and free to double check 
     3. <<iostat>> +
 
 .Troubleshooting table
-[width="90%", cols="^,^,2*<.<]
+[width="90%", cols="2*1<.^,2*2<.<]
 |=====================
 |Resource	|Metric	|Linux	|Solaris		
 
