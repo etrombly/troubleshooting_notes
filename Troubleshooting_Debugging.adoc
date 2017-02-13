@@ -1,0 +1,231 @@
+= Troubleshooting and Debugging
+Doc Writer <etrombly@gmail.com>
+v1.0, 2016-02-12
+:docinfo: shared
+:toc: left
+:toclevels: 4
+//:numbered:
+:icons: font
+
+++++
+<style>
+h5 {
+    font-weight: bold;
+}
+</style>
+++++
+
+== Introduction
+
+This document is designed to be a reference for troubleshooting and debugging Linux and Solaris. Familiarity with the C programming language is helpful, but not required. Where possible only programs that are installed by default are covered, there are many other tools that can give you more information, but they aren't always available.
+
+The first topic covered is performance monitoring. If a program is not behaving correctly, this can often be traced to underlying problems like running out of memory. Understanding how to monitor system performance can be a huge help in troubleshooting a problem.
+
+Next tracing is covered. Tracing allows you to closely monitor what a program is actually doing. Depending on the program used to trace, you can monitor function and system calls, I/O, interrupts, and many other events. This can be helpful to find out if a program is trying to read a specific file, access another computer remotely, or is hung up waiting for information.
+
+Finally debugging is covered. Debugging is handy to find out why a program is crashing, or in some cases to modify information that the program is using. Tracing and debugging have some overlap on the information you can retrieve, so sometimes which tool you use is up to personal preferance.
+
+.More Info
+****
+A lot of the examples and references are from Brendan Gregg. He has tons of great material if you want to dig deeper in to any of these topics. https://en.wikipedia.org/wiki/Brendan_Gregg
+****
+
+<<<
+
+== Performance Monitoring
+
+http://thegeekdiary.com/a-beginners-guide-to-solaris-performance-monitoring-and-troubleshooting/
+
+=== CPU
+
+==== uptime
+
+The uptime command shows how long a system has been powered on, the number of logged in users, and the load average. Load average can give you a quick glance at how loaded the system is. 
+
+A completely idle computer has a load average of 0. Each running process either using or waiting for CPU resources adds 1 to the load average. So, if your system has a load of 5, five processes are either using or waiting for the CPU.
+
+Unix systems traditionally just counted processes waiting for the CPU, but Linux also counts processes waiting for other resources — for example, processes waiting to read from or write to the disk.
+
+[NOTE]
+For load average to make sense, you need to know how many cpu's the system has, you can figure this out with <<mpstat>>. 
+
+For example, if you have a load average of 2 on a single-CPU system, this means your system was overloaded by 100 percent — the entire period of time, one process was using the CPU while one other process was waiting. On a system with two CPUs, this would be complete usage — two different processes were using two different CPUs the entire time. On a system with four CPUs, this would be half usage — two processes were using two CPUs, while two CPUs were sitting idle.
+
+The load average is reported for the last minute, 5 minutes, and 15 minutes. This can be useful to discover if load is going up, down, or staying the same.
+
+    # uptime
+    11:57pm up 44 mins(s), 2 users, load average: 0.08, 0.13, 0.14
+
+[NOTE]
+In this example the cpu was idle 92% of the time for the last minute (0.08 load average)
+
+
+
+[[mpstat]]
+==== mpstat
+mpstat shows processor usage by cpu. Mpstat can help determine how load is distributed across cpus, it can also help debug lock contention issues.footnote:[http://www.princeton.edu/~unix/Solaris/troubleshoot/mpstat.html]
+
+Things to look for:
+
+* If only one cpu is consistantly used
+
+* if xcall (cross call) is over about 200 there may be issues with the program
+
+* if migr (thread migrations) is over about 500, then look into setting rechoose-interval higher
+
+* smtx and srw show when the program is waiting on a mutex or file lock. Could be a bug or resource contention.
+
+[NOTE]
+the first line of output from mpstat (like iostat, vmstat, etc.) contains averages since system boot. The subsequent lines will show current values.
+
+.Solaris
+----
+# mpstat -ap
+SET minf mjf xcal intr ithr csw icsw migr smtx srw syscl usr sys wt idl sze
+0    6   0  355  291  190  22    0    0    0   0    43   0   2  0  43   1
+1   24  17  534  207  200  70    1    0    2   0   600   4   1  0  84   2
+2   19   7  353  325  318  44    0    0    5   0   345   1   1  0  94   3
+3   36   2  149  237  236  14    0    0    4   0    97   0   0  0  98   2
+----
+
+.Linux
+----
+$ mpstat
+Linux 2.4.21-32.ELsmp (linux00)        07/04/07
+
+10:26:54     CPU   %user   %nice %system %iowait    %irq   %soft   %idle    intr/s
+10:26:54     all    0.07    0.00    0.16    8.48    0.00    0.09   91.18    165.49
+----
+[NOTE]
+for mpstat on Solaris the idl value reports the time that the CPU is idle for any
+reason other than pending disk I/O operations.footnote:[https://kvaes.wordpress.com/2007/04/26/solaris-measuring-cpu-mpstat-vs-sar/]
+
+==== ps
+
+
+
+=== Memory
+
+[[vmstat]]
+==== vmstat
+
+http://www.adminschoice.com/iostat-vmstat-netstat/2/
+
+==== free (linux)
+
+==== prtconf (solaris)
+
+To figure out total memory available in Solaris you can use prtconf.footnote:[http://thegeekdiary.com/how-to-find-number-of-physicallogical-cpus-cores-and-memory-in-solaris/]
+
+    # prtconf | grep Memory
+    Memory size: 65536 Megabytes
+
+
+
+=== Filesystem
+
+[[iostat]]
+==== iostat
+
+http://www.adminschoice.com/iostat-vmstat-netstat
+
+==== iotop (linux)
+
+
+
+=== Network
+
+==== netstat
+
+http://www.brendangregg.com/Solaris/network.html
+
+https://docs.oracle.com/cd/E23824_01/html/821-1454/netmonitor-2.html
+
+http://www.adminschoice.com/iostat-vmstat-netstat/3
+
+==== snoop (solaris)
+
+==== tcpdump (linux)
+
+==== iftop (linux)
+
+
+
+=== NFS
+
+https://blogs.oracle.com/brendan/entry/nfs_analytics_example
+
+==== nfsstat
+
+
+
+=== Generic
+
+[[prstat]]
+==== prstat (solaris)
+
+==== kstat (solaris)
+
+[[top]]
+==== top (linux)
+
+
+=== Typical monitoring procedure
+
+    1. <<prstat>> or <<top>> +
+check cpu % per process, cpu and memory % per user. See if any specific process stands out.
+
+
+    2. <<vmstat>> +
+If b is high could be waiting on IO or CPU. Check swap and free to double check memory. Check cpu id (idle) if cpu% from prstat was low, but id is also low, could be short lived processes. 
+
+
+    3. <<iostat>> +
+
+
+
+<<<
+
+== Tracing
+
+=== Useful system calls
+
+==== File reading
+
+* read
+
+* select
+
+* poll
+
+* pollsys (solaris) footnote:[https://www.joyent.com/blog/bruning-questions-how-to-dtrace-poll-2-system-calls]
+
+==== File Writing
+
+* write
+
+
+=== truss (solaris)
+
+The truss utility executes the specified command and produces a trace of the system calls it performs, the signals it receives, and the machine faults it incurs.
+
+If possible you should use dtrace instead, due to performance issues with truss footnote:[http://www.brendangregg.com/DTrace/dtracevstruss.html]. This may not be possible if you don't have access to the global zone.
+
+
+
+=== strace (linux)
+
+=== dtrace (solaris)
+
+=== ftrace (linux)
+
+http://blog.fpmurphy.com/2014/05/kernel-tracing-using-ftrace.html
+
+
+<<<
+
+== Debugging
+
+=== mdb (solaris)
+
+=== gdb (linux)
