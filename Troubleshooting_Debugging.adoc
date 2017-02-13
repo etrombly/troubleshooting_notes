@@ -183,17 +183,18 @@ If b is high could be waiting on IO or CPU. Check swap and free to double check 
     3. <<iostat>> +
 
 .Troubleshooting table
-[width="90%", cols=">s,^m,2*^.<]
+[width="90%", cols="^,^,2*<.<]
 |=====================
 |Resource	|Metric	|Linux	|Solaris		
-|CPU	    |errors	|
+
+|CPU	    |errors	
 |
-fmadm faulty
+|fmadm faulty
 
 cpustat (CPC) for whatever error counters are supported (eg, thermal throttling)		
 
-|CPU	     |saturation |
-*system-wide* 
+|CPU	     |saturation 
+|*system-wide* 
 
 vmstat 1, "r" > CPU count [2]
 
@@ -201,8 +202,8 @@ dstat -p, "run" > CPU count
 
 *per-process*
 
-/proc/PID/schedstat 2nd field (sched_info.run_delay) |	
-*system-wide*
+/proc/PID/schedstat 2nd field (sched_info.run_delay) 
+|*system-wide*
 
 uptime, load averages
 
@@ -214,8 +215,8 @@ DTrace dispqlen.d (DTT) for a better "vmstat r"
 
 prstat -mLc 1, "LAT"		
 
-|CPU	     |utilization	|
-*system-wide*
+|CPU	     |utilization	
+|*system-wide*
 
 vmstat 1, "us" + "sy" + "st"
 
@@ -231,8 +232,8 @@ sar -P ALL, same as mpstat
 
 top, "%CPU"
 
-ps -o pcpu |
-*per-cpu*
+ps -o pcpu
+|*per-cpu*
 
 mpstat 1, "usr" + "sys"
 
@@ -246,25 +247,25 @@ prstat -c 1 ("CPU" == recent)
 
 prstat -mLc 1 ("USR" + "SYS")		
 
-|Memory capacity |errors	|
-dmesg for physical failures |
-fmadm faulty and prtdiag for physical failures
+|Memory capacity |errors	
+|dmesg for physical failures 
+|fmadm faulty and prtdiag for physical failures
 
 fmstat -s -m cpumem-retire (ECC events)
 
 DTrace failed malloc()s		
 
-|Memory capacity |saturation |
-*system-wide*
+|Memory capacity |saturation 
+|*system-wide*
 
 vmstat 1, "si"/"so" (swapping)
 
 *per-process*
 
-10th field (min_flt) from /proc/PID/stat for minor-fault rate, or dynamic tracing [5]
+10th field (min_flt) from /proc/PID/stat for minor-fault rate
 
-*OOM killer*: dmesg \| grep killed |
-*system-wide*
+*OOM killer*: dmesg \| grep killed 
+|*system-wide*
 
 vmstat 1, "sr" (bad now), "w" (was very bad)
 
@@ -276,8 +277,8 @@ prstat -mLc 1, "DFL"
 
 DTrace anonpgpid.d (DTT), vminfo:::anonpgin on execname		
 
-|Memory capacity |utilization |
-*system-wide*
+|Memory capacity |utilization 
+|*system-wide*
 
 free -m, "Mem:" (main memory), "Swap:" (virtual memory)
 
@@ -289,8 +290,8 @@ slabtop -s c for kmem slab usage
 
 *per-process*
 
-top, "RES" (resident main memory), "VIRT" (virtual memory), "Mem" for system-wide summary |
-*system-wide*
+top, "RES" (resident main memory), "VIRT" (virtual memory), "Mem" for system-wide summary 
+|*system-wide*
 
 vmstat 1, "free" (main memory), "swap" (virtual memory)
 
@@ -298,8 +299,8 @@ vmstat 1, "free" (main memory), "swap" (virtual memory)
 
 prstat -c, "RSS" (main memory), "SIZE" (virtual memory)
 
-|Network Interfaces	|errors	|
-ifconfig, "errors", "dropped"
+|Network Interfaces	|errors	
+|ifconfig, "errors", "dropped"
 
 netstat -i, "RX-ERR"/"TX-ERR"
 
@@ -307,15 +308,15 @@ ip -s link, "errors"
 
 sar -n EDEV, "rxerr/s" "txerr/s"
 
-/proc/net/dev, "errs", "drop" |
-netstat -i, error counters
+/proc/net/dev, "errs", "drop" 
+|netstat -i, error counters
 
 dladm show-phys
 
 kstat for extended errors, look in the interface and "link" statistics (there are often custom counters for the card)
 
-|Network Interfaces	|saturation	|
-ifconfig, "overruns", "dropped"
+|Network Interfaces	|saturation
+|ifconfig, "overruns", "dropped"
 
 netstat -s, "segments retransmited"
 
@@ -323,47 +324,47 @@ sar -n EDEV, *drop and *fifo metrics
 
 /proc/net/dev, RX/TX "drop"
 
-nicstat "Sat" |
-nicstat
+nicstat "Sat" 
+|nicstat
 
 kstat for whatever custom statistics are available (eg, "nocanputs", "defer", "norcvbuf", "noxmtbuf")
 
 netstat -s, retransmits		
 
-|Network Interfaces	|utilization |
-sar -n DEV 1, "rxKB/s"/max "txKB/s"/max
+|Network Interfaces	|utilization 
+|sar -n DEV 1, "rxKB/s"/max "txKB/s"/max
 
 ip -s link, RX/TX tput / max bandwidth
 
 /proc/net/dev, "bytes" RX/TX tput/max
 
-nicstat "%Util" [6]	|
-nicstat
+nicstat "%Util"
+|nicstat
 
 kstat
 
 dladm show-link -s -i 1 interface		
 
-|Network controller	|errors	|
-see network interface errors, ... |
-kstat for whatever is there / DTrace		
+|Network controller	|errors	
+|see network interface errors, ... 
+|kstat for whatever is there / DTrace		
 	
-|Network controller	|utilization |
-infer from ip -s link (or /proc/net/dev) and known controller max tput for its interfaces |
-infer from nicstat and known controller max tput
+|Network controller	|utilization 
+|infer from ip -s link (or /proc/net/dev) and known controller max tput for its interfaces 
+|infer from nicstat and known controller max tput
 
-|Storage capacity	|errors |
-strace for ENOSPC
+|Storage capacity	|errors 
+|strace for ENOSPC
 
 dynamic tracing for ENOSPC
 
-/var/log/messages errs, depending on FS |
-DTrace
+/var/log/messages errs, depending on FS 
+|DTrace
 
 /var/adm/messages file system full messages
 		
-|Storage capacity	|utilization |
-*swap*
+|Storage capacity	|utilization 
+|*swap*
 
 swapon -s
 
@@ -373,8 +374,8 @@ free
 
 *file systems*
 
-df -h |
-*swap*
+df -h 
+|*swap*
 
 swap -s
 
@@ -382,38 +383,38 @@ swap -s
 
 df -h; plus other commands depending on FS type		
 
-|Storage controller	|errors	|
-see storage device errors, ... |
-DTrace the driver, eg, mptevents.d (DTB)
+|Storage controller	|errors
+|see storage device errors, ... 
+|DTrace the driver, eg, mptevents.d (DTB)
 
 /var/adm/messages	
 
-|Storage controller	|saturation	|
-see storage device saturation, ... |
-look for kernel queueing: sd (iostat "wait" again), ZFS zio pipeline
+|Storage controller	|saturation	
+|see storage device saturation, ... 
+|look for kernel queueing: sd (iostat "wait" again), ZFS zio pipeline
 
-|Storage controller	|utilization |
-iostat -xz 1, sum devices and compare to known IOPS/tput limits per-card |
-iostat -Cxnz 1, compare to known IOPS/tput limits per-card
+|Storage controller	|utilization 
+|iostat -xz 1, sum devices and compare to known IOPS/tput limits per-card 
+|iostat -Cxnz 1, compare to known IOPS/tput limits per-card
 
-|Storage device I/O	|errors	|
-/sys/devices/.../ioerr_cnt
+|Storage device I/O	|errors	
+|/sys/devices/.../ioerr_cnt
 
-smartctl |
-iostat -En
+smartctl 
+|iostat -En
 
 DTrace I/O subsystem, eg, ideerr.d (DTB), satareasons.d (DTB), scsireasons.d (DTB), sdretry.d (DTB)
 
-|Storage device I/O	|saturation	|
-iostat -xnz 1, "avgqu-sz" > 1, or high "await"
+|Storage device I/O	|saturation	
+|iostat -xnz 1, "avgqu-sz" > 1, or high "await"
 
-sar -d same; LPE block probes for queue length/latency |
-iostat -xnz 1, "wait"
+sar -d same; LPE block probes for queue length/latency 
+|iostat -xnz 1, "wait"
 
 DTrace iopending (DTT), sdqueue.d (DTB)
 
-|Storage device I/O	|utilization |
-*system-wide*
+|Storage device I/O	|utilization 
+|*system-wide*
 
 iostat -xz 1, "%util"
 
@@ -423,8 +424,8 @@ sar -d, "%util"
 
 pidstat -d
 
-/proc/PID/sched "se.statistics.iowait_sum" |
-*system-wide*
+/proc/PID/sched "se.statistics.iowait_sum" 
+|*system-wide*
 
 iostat -xnz 1, "%b"
 
