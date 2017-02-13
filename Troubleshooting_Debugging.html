@@ -851,6 +851,225 @@ If b is high could be waiting on IO or CPU. Check swap and free to double check 
 </li>
 </ol>
 </div>
+<table class="tableblock frame-all grid-all" style="width: 90%;">
+<caption class="title">Table 1. Troubleshooting table</caption>
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Resource</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Metric</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Linux</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Solaris</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CPU</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">errors</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">fmadm faulty
+</p><p class="tableblock">cpustat (CPC) for whatever error counters are supported (eg, thermal throttling)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CPU</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">saturation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>system-wide</strong>
+</p><p class="tableblock">vmstat 1, "r" &gt; CPU count [2]
+</p><p class="tableblock">dstat -p, "run" &gt; CPU count
+</p><p class="tableblock"><strong>per-process</strong>
+</p><p class="tableblock">/proc/PID/schedstat 2nd field (sched_info.run_delay)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>system-wide</strong>
+</p><p class="tableblock">uptime, load averages
+</p><p class="tableblock">vmstat 1, "r"
+</p><p class="tableblock">DTrace dispqlen.d (DTT) for a better "vmstat r"
+</p><p class="tableblock"><strong>per-process</strong>
+</p><p class="tableblock">prstat -mLc 1, "LAT"</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CPU</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">utilization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>system-wide</strong>
+</p><p class="tableblock">vmstat 1, "us" + "sy" + "st"
+</p><p class="tableblock">sar -u, sum fields except "%idle" and "%iowait"
+</p><p class="tableblock"><strong>per-cpu</strong>
+</p><p class="tableblock">mpstat -P ALL 1, sum fields except "%idle" and "%iowait"
+</p><p class="tableblock">sar -P ALL, same as mpstat
+</p><p class="tableblock"><strong>per-process</strong>
+</p><p class="tableblock">top, "%CPU"
+</p><p class="tableblock">ps -o pcpu</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>per-cpu</strong>
+</p><p class="tableblock">mpstat 1, "usr" + "sys"
+</p><p class="tableblock"><strong>system-wide</strong>
+</p><p class="tableblock">vmstat 1, "us" + "sy"
+</p><p class="tableblock"><strong>per-process</strong>
+</p><p class="tableblock">prstat -c 1 ("CPU" == recent)
+</p><p class="tableblock">prstat -mLc 1 ("USR" + "SYS")</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Memory capacity</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">errors</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">dmesg for physical failures</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">fmadm faulty and prtdiag for physical failures
+</p><p class="tableblock">fmstat -s -m cpumem-retire (ECC events)
+</p><p class="tableblock">DTrace failed malloc()s</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Memory capacity</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">saturation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>system-wide</strong>
+</p><p class="tableblock">vmstat 1, "si"/"so" (swapping)
+</p><p class="tableblock"><strong>per-process</strong>
+</p><p class="tableblock">10th field (min_flt) from /proc/PID/stat for minor-fault rate, or dynamic tracing [5]
+</p><p class="tableblock"><strong>OOM killer</strong>: dmesg | grep killed</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>system-wide</strong>
+</p><p class="tableblock">vmstat 1, "sr" (bad now), "w" (was very bad)
+</p><p class="tableblock">vmstat -p 1, "api" (anon page ins == pain), "apo"
+</p><p class="tableblock"><strong>per-process</strong>
+</p><p class="tableblock">prstat -mLc 1, "DFL"
+</p><p class="tableblock">DTrace anonpgpid.d (DTT), vminfo:::anonpgin on execname</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Memory capacity</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">utilization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>system-wide</strong>
+</p><p class="tableblock">free -m, "Mem:" (main memory), "Swap:" (virtual memory)
+</p><p class="tableblock">vmstat 1, "free" (main memory), "swap" (virtual memory)
+</p><p class="tableblock">sar -r, "%memused"; dstat -m, "free"
+</p><p class="tableblock">slabtop -s c for kmem slab usage
+</p><p class="tableblock"><strong>per-process</strong>
+</p><p class="tableblock">top, "RES" (resident main memory), "VIRT" (virtual memory), "Mem" for system-wide summary</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>system-wide</strong>
+</p><p class="tableblock">vmstat 1, "free" (main memory), "swap" (virtual memory)
+</p><p class="tableblock"><strong>per-process</strong>
+</p><p class="tableblock">prstat -c, "RSS" (main memory), "SIZE" (virtual memory)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Network Interfaces</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">errors</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ifconfig, "errors", "dropped"
+</p><p class="tableblock">netstat -i, "RX-ERR"/"TX-ERR"
+</p><p class="tableblock">ip -s link, "errors"
+</p><p class="tableblock">sar -n EDEV, "rxerr/s" "txerr/s"
+</p><p class="tableblock">/proc/net/dev, "errs", "drop"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">netstat -i, error counters
+</p><p class="tableblock">dladm show-phys
+</p><p class="tableblock">kstat for extended errors, look in the interface and "link" statistics (there are often custom counters for the card)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Network Interfaces</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">saturation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ifconfig, "overruns", "dropped"
+</p><p class="tableblock">netstat -s, "segments retransmited"
+</p><p class="tableblock">sar -n EDEV, *drop and *fifo metrics
+</p><p class="tableblock">/proc/net/dev, RX/TX "drop"
+</p><p class="tableblock">nicstat "Sat"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">nicstat
+</p><p class="tableblock">kstat for whatever custom statistics are available (eg, "nocanputs", "defer", "norcvbuf", "noxmtbuf")
+</p><p class="tableblock">netstat -s, retransmits</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Network Interfaces</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">utilization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">sar -n DEV 1, "rxKB/s"/max "txKB/s"/max
+</p><p class="tableblock">ip -s link, RX/TX tput / max bandwidth
+</p><p class="tableblock">/proc/net/dev, "bytes" RX/TX tput/max
+</p><p class="tableblock">nicstat "%Util" [6]</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">nicstat
+</p><p class="tableblock">kstat
+</p><p class="tableblock">dladm show-link -s -i 1 interface</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Network controller</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">errors</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">see network interface errors, &#8230;&#8203;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">kstat for whatever is there / DTrace</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Network controller</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">utilization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">infer from ip -s link (or /proc/net/dev) and known controller max tput for its interfaces</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">infer from nicstat and known controller max tput</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Storage capacity</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">errors</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">strace for ENOSPC
+</p><p class="tableblock">dynamic tracing for ENOSPC
+</p><p class="tableblock">/var/log/messages errs, depending on FS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DTrace
+</p><p class="tableblock">/var/adm/messages file system full messages</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Storage capacity</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">utilization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>swap</strong>
+</p><p class="tableblock">swapon -s
+</p><p class="tableblock">free
+</p><p class="tableblock">/proc/meminfo "SwapFree"/"SwapTotal"
+</p><p class="tableblock"><strong>file systems</strong>
+</p><p class="tableblock">df -h</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>swap</strong>
+</p><p class="tableblock">swap -s
+</p><p class="tableblock"><strong>file systems</strong>
+</p><p class="tableblock">df -h; plus other commands depending on FS type</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Storage controller</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">errors</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">see storage device errors, &#8230;&#8203;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">DTrace the driver, eg, mptevents.d (DTB)
+</p><p class="tableblock">/var/adm/messages</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Storage controller</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">saturation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">see storage device saturation, &#8230;&#8203;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">look for kernel queueing: sd (iostat "wait" again), ZFS zio pipeline</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Storage controller</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">utilization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iostat -xz 1, sum devices and compare to known IOPS/tput limits per-card</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iostat -Cxnz 1, compare to known IOPS/tput limits per-card</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Storage device I/O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">errors</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">/sys/devices/&#8230;&#8203;/ioerr_cnt
+</p><p class="tableblock">smartctl</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iostat -En
+</p><p class="tableblock">DTrace I/O subsystem, eg, ideerr.d (DTB), satareasons.d (DTB), scsireasons.d (DTB), sdretry.d (DTB)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Storage device I/O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">saturation</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iostat -xnz 1, "avgqu-sz" &gt; 1, or high "await"
+</p><p class="tableblock">sar -d same; LPE block probes for queue length/latency</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">iostat -xnz 1, "wait"
+</p><p class="tableblock">DTrace iopending (DTT), sdqueue.d (DTB)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Storage device I/O</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">utilization</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>system-wide</strong>
+</p><p class="tableblock">iostat -xz 1, "%util"
+</p><p class="tableblock">sar -d, "%util"
+</p><p class="tableblock"><strong>per-process</strong>
+</p><p class="tableblock">pidstat -d
+</p><p class="tableblock">/proc/PID/sched "se.statistics.iowait_sum"</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>system-wide</strong>
+</p><p class="tableblock">iostat -xnz 1, "%b"
+</p><p class="tableblock"><strong>per-process</strong>
+</p><p class="tableblock">DTrace iotop</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Modified from the USE method Rosetta Stone <sup class="footnote">[<a id="_footnoteref_4" class="footnote" href="#_footnote_4" title="View footnote.">4</a>]</sup>. Removed some tools that aren&#8217;t on default installs and simplified the table.</p>
+</div>
 <div style="page-break-after: always;"></div>
 </div>
 </div>
@@ -874,7 +1093,7 @@ If b is high could be waiting on IO or CPU. Check swap and free to double check 
 <p>poll</p>
 </li>
 <li>
-<p>pollsys (solaris) <sup class="footnote">[<a id="_footnoteref_4" class="footnote" href="#_footnote_4" title="View footnote.">4</a>]</sup></p>
+<p>pollsys (solaris) <sup class="footnote">[<a id="_footnoteref_5" class="footnote" href="#_footnote_5" title="View footnote.">5</a>]</sup></p>
 </li>
 </ul>
 </div>
@@ -896,7 +1115,7 @@ If b is high could be waiting on IO or CPU. Check swap and free to double check 
 <p>The truss utility executes the specified command and produces a trace of the system calls it performs, the signals it receives, and the machine faults it incurs.</p>
 </div>
 <div class="paragraph">
-<p>If possible you should use dtrace instead, due to performance issues with truss <sup class="footnote">[<a id="_footnoteref_5" class="footnote" href="#_footnote_5" title="View footnote.">5</a>]</sup>. This may not be possible if you don&#8217;t have access to the global zone.</p>
+<p>If possible you should use dtrace instead, due to performance issues with truss <sup class="footnote">[<a id="_footnoteref_6" class="footnote" href="#_footnote_6" title="View footnote.">6</a>]</sup>. This may not be possible if you don&#8217;t have access to the global zone.</p>
 </div>
 </div>
 <div class="sect2">
@@ -942,16 +1161,19 @@ If b is high could be waiting on IO or CPU. Check swap and free to double check 
 <a href="#_footnoteref_3">3</a>. <a href="http://thegeekdiary.com/how-to-find-number-of-physicallogical-cpus-cores-and-memory-in-solaris/" class="bare">http://thegeekdiary.com/how-to-find-number-of-physicallogical-cpus-cores-and-memory-in-solaris/</a>
 </div>
 <div class="footnote" id="_footnote_4">
-<a href="#_footnoteref_4">4</a>. <a href="https://www.joyent.com/blog/bruning-questions-how-to-dtrace-poll-2-system-calls" class="bare">https://www.joyent.com/blog/bruning-questions-how-to-dtrace-poll-2-system-calls</a>
+<a href="#_footnoteref_4">4</a>. <a href="http://www.brendangregg.com/USEmethod/use-rosetta.html" class="bare">http://www.brendangregg.com/USEmethod/use-rosetta.html</a>
 </div>
 <div class="footnote" id="_footnote_5">
-<a href="#_footnoteref_5">5</a>. <a href="http://www.brendangregg.com/DTrace/dtracevstruss.html" class="bare">http://www.brendangregg.com/DTrace/dtracevstruss.html</a>
+<a href="#_footnoteref_5">5</a>. <a href="https://www.joyent.com/blog/bruning-questions-how-to-dtrace-poll-2-system-calls" class="bare">https://www.joyent.com/blog/bruning-questions-how-to-dtrace-poll-2-system-calls</a>
+</div>
+<div class="footnote" id="_footnote_6">
+<a href="#_footnoteref_6">6</a>. <a href="http://www.brendangregg.com/DTrace/dtracevstruss.html" class="bare">http://www.brendangregg.com/DTrace/dtracevstruss.html</a>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2017-02-13 10:23:48 CET
+Last updated 2017-02-13 14:49:44 CET
 </div>
 </div>
 </body>
